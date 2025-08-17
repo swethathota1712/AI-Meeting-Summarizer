@@ -1,0 +1,320 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Vibrant gradient theme */
+  --primary: hsl(280, 100%, 65%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(320, 85%, 60%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(200, 95%, 55%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --success: hsl(140, 85%, 55%);
+  --success-foreground: hsl(0, 0%, 100%);
+  --warning: hsl(45, 100%, 60%);
+  --warning-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 85%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  
+  /* Background gradients */
+  --background: linear-gradient(135deg, hsl(240, 100%, 95%) 0%, hsl(260, 100%, 97%) 50%, hsl(280, 100%, 95%) 100%);
+  --card-background: rgba(255, 255, 255, 0.95);
+  --glass-background: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  
+  /* Text colors */
+  --foreground: hsl(240, 10%, 15%);
+  --card-foreground: hsl(240, 10%, 15%);
+  --muted: hsl(240, 5%, 85%);
+  --muted-foreground: hsl(240, 5%, 45%);
+  
+  /* Modern styling */
+  --border: hsl(240, 10%, 90%);
+  --input: rgba(255, 255, 255, 0.9);
+  --ring: hsl(280, 100%, 65%);
+  --radius: 0.75rem;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  
+  /* Animation variables */
+  --shimmer-size: 500px;
+  --glow-size: 200px;
+}
+
+/* Global styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--background);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Custom animations */
+@keyframes shimmer {
+  0% {
+    background-position: -var(--shimmer-size) 0;
+  }
+  100% {
+    background-position: calc(100% + var(--shimmer-size)) 0;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(128, 0, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(128, 0, 255, 0.6), 0 0 60px rgba(255, 0, 150, 0.3);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(50px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(128, 0, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(128, 0, 255, 0.8), 0 0 35px rgba(255, 0, 150, 0.4);
+  }
+}
+
+@keyframes tooltip-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1);
+  }
+}
+
+/* Animation utility classes */
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  background-size: var(--shimmer-size) 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Glass morphism effect */
+.glass-card {
+  background: var(--card-background);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient button styles */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border: none;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(128, 0, 255, 0.3);
+}
+
+.btn-gradient-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.btn-gradient-primary:hover::before {
+  left: 100%;
+}
+
+.btn-gradient-accent {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(0, 150, 255, 0.3);
+}
+
+/* Summary box with color-changing gradients */
+.summary-box {
+  background: linear-gradient(135deg, 
+    rgba(128, 0, 255, 0.1) 0%, 
+    rgba(255, 0, 150, 0.1) 25%,
+    rgba(0, 150, 255, 0.1) 50%,
+    rgba(150, 255, 0, 0.1) 75%,
+    rgba(255, 150, 0, 0.1) 100%
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 8s ease infinite;
+  border: 2px solid rgba(128, 0, 255, 0.2);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 1s ease;
+}
+
+.summary-box:hover::before {
+  left: 100%;
+}
+
+/* Shimmer text effect */
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--primary),
+    var(--secondary),
+    var(--accent),
+    var(--primary)
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Tooltip styles */
+.tooltip {
+  position: absolute;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  pointer-events: none;
+  animation: tooltip-bounce 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.dark {
+  --background: linear-gradient(135deg, hsl(240, 20%, 10%) 0%, hsl(260, 25%, 8%) 50%, hsl(280, 20%, 10%) 100%);
+  --foreground: hsl(240, 10%, 90%);
+  --card-background: rgba(20, 20, 30, 0.95);
+  --card-foreground: hsl(240, 10%, 90%);
+  --border: hsl(240, 10%, 20%);
+  --input: rgba(30, 30, 40, 0.9);
+}

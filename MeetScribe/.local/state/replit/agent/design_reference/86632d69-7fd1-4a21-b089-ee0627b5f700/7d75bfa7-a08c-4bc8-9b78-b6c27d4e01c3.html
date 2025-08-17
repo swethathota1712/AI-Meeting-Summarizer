@@ -1,0 +1,537 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Meeting Notes Summarizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        secondary: '#64748B',
+                        background: '#F8FAFC',
+                        surface: '#FFFFFF',
+                        textPrimary: '#1E293B',
+                        textMuted: '#94A3B8',
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-background font-sans text-textPrimary min-h-screen">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-surface shadow-sm border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-semibold text-textPrimary">AI Meeting Summarizer</h1>
+                </div>
+                <div class="text-sm text-textMuted">
+                    Transform your meeting notes into actionable summaries
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- @COMPONENT: ProgressIndicator -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center space-x-2" id="step-1">
+                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-medium">1</div>
+                    <span class="font-medium text-primary">Upload Transcript</span>
+                </div>
+                <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                <div class="flex items-center space-x-2" id="step-2">
+                    <div class="w-8 h-8 rounded-full bg-gray-300 text-textMuted flex items-center justify-center font-medium">2</div>
+                    <span class="text-textMuted">Add Instructions</span>
+                </div>
+                <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                <div class="flex items-center space-x-2" id="step-3">
+                    <div class="w-8 h-8 rounded-full bg-gray-300 text-textMuted flex items-center justify-center font-medium">3</div>
+                    <span class="text-textMuted">Generate & Edit</span>
+                </div>
+                <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                <div class="flex items-center space-x-2" id="step-4">
+                    <div class="w-8 h-8 rounded-full bg-gray-300 text-textMuted flex items-center justify-center font-medium">4</div>
+                    <span class="text-textMuted">Share Summary</span>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ProgressIndicator -->
+
+        <!-- @COMPONENT: FileUploadSection -->
+        <div id="upload-section" class="mb-8">
+            <div class="bg-surface rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <i class="fas fa-upload text-primary text-lg"></i>
+                    <h2 class="text-lg font-semibold">Step 1: Upload Meeting Transcript</h2>
+                </div>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer" id="upload-zone">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-textMuted mb-4"></i>
+                    <p class="text-lg font-medium text-textPrimary mb-2">Drop your transcript file here</p>
+                    <p class="text-sm text-textMuted mb-4">or click to browse files</p>
+                    <p class="text-xs text-textMuted">Supports .txt, .docx files up to 10MB</p>
+                    <input type="file" id="file-input" accept=".txt,.docx" class="hidden" data-implementation="Handle file upload and validation">
+                </div>
+
+                <!-- @STATE: fileUploaded:boolean = false -->
+                <div id="file-preview" class="mt-4 hidden">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-file-text text-primary"></i>
+                            <div>
+                                <p class="font-medium text-sm" data-bind="fileName">meeting_transcript.txt</p>
+                                <p class="text-xs text-textMuted" data-bind="fileSize">2.3 KB</p>
+                            </div>
+                        </div>
+                        <button class="text-red-500 hover:text-red-700 transition-colors" data-event="click:removeFile">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-6">
+                    <button id="continue-to-prompt" class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled data-event="click:proceedToStep2">
+                        Continue to Instructions
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: FileUploadSection -->
+
+        <!-- @COMPONENT: PromptSection -->
+        <div id="prompt-section" class="mb-8 hidden">
+            <div class="bg-surface rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <i class="fas fa-edit text-primary text-lg"></i>
+                    <h2 class="text-lg font-semibold">Step 2: Add Custom Instructions</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="prompt-input" class="block text-sm font-medium text-textPrimary mb-2">
+                            How would you like the transcript summarized?
+                        </label>
+                        <textarea 
+                            id="prompt-input" 
+                            rows="4" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none" 
+                            placeholder="e.g., 'Summarize in bullet points for executives' or 'Highlight only action items and deadlines'"
+                            data-mock="true"
+                            data-implementation="Bind to state variable for AI prompt"
+                        >Summarize the meeting transcript in bullet points, focusing on key decisions, action items, and next steps. Format it for executive review.</textarea>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 class="font-medium text-blue-900 mb-2">
+                            <i class="fas fa-lightbulb text-blue-600 mr-2"></i>
+                            Suggestion Templates
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <button class="text-left p-2 text-sm text-blue-700 hover:bg-blue-100 rounded border border-blue-200 transition-colors" data-event="click:useTemplate">
+                                📋 Executive Summary Format
+                            </button>
+                            <button class="text-left p-2 text-sm text-blue-700 hover:bg-blue-100 rounded border border-blue-200 transition-colors" data-event="click:useTemplate">
+                                ✅ Action Items Only
+                            </button>
+                            <button class="text-left p-2 text-sm text-blue-700 hover:bg-blue-100 rounded border border-blue-200 transition-colors" data-event="click:useTemplate">
+                                📊 Project Status Update
+                            </button>
+                            <button class="text-left p-2 text-sm text-blue-700 hover:bg-blue-100 rounded border border-blue-200 transition-colors" data-event="click:useTemplate">
+                                🎯 Key Decisions & Outcomes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button id="back-to-upload" class="text-textMuted hover:text-textPrimary transition-colors" data-event="click:backToStep1">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Upload
+                    </button>
+                    <button id="generate-summary" class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors" data-event="click:generateSummary">
+                        Generate Summary
+                        <i class="fas fa-magic ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: PromptSection -->
+
+        <!-- @COMPONENT: LoadingSection -->
+        <div id="loading-section" class="mb-8 hidden">
+            <div class="bg-surface rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="text-center py-8">
+                    <div class="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-lg font-semibold mb-2">Generating AI Summary...</h3>
+                    <p class="text-textMuted">This may take a few moments while we process your transcript</p>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: LoadingSection -->
+
+        <!-- @COMPONENT: EditSummarySection -->
+        <div id="edit-section" class="mb-8 hidden">
+            <div class="bg-surface rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-file-edit text-primary text-lg"></i>
+                        <h2 class="text-lg font-semibold">Step 3: Review & Edit Summary</h2>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="text-textMuted hover:text-textPrimary transition-colors" data-event="click:copyToClipboard" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="text-textMuted hover:text-textPrimary transition-colors" data-event="click:regenerateSummary" title="Regenerate summary">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-300 rounded-lg p-4 min-h-[300px] focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent">
+                    <div 
+                        id="summary-editor" 
+                        contenteditable="true" 
+                        class="outline-none min-h-[250px] prose prose-sm max-w-none"
+                        data-mock="true"
+                        data-implementation="Implement rich text editor functionality"
+                    >
+                        <h3>Meeting Summary - Project Kickoff</h3>
+                        
+                        <h4>Key Decisions:</h4>
+                        <ul>
+                            <li><strong>Project Timeline:</strong> Agreed on 8-week development cycle starting next Monday</li>
+                            <li><strong>Technology Stack:</strong> Confirmed use of React, Node.js, and PostgreSQL</li>
+                            <li><strong>Team Structure:</strong> 3 frontend developers, 2 backend developers, 1 designer</li>
+                        </ul>
+
+                        <h4>Action Items:</h4>
+                        <ul>
+                            <li><strong>Sarah (PM):</strong> Set up project management tools by Friday</li>
+                            <li><strong>Mike (Lead Dev):</strong> Create technical architecture document by Tuesday</li>
+                            <li><strong>Team:</strong> Review requirements document and provide feedback by Thursday</li>
+                        </ul>
+
+                        <h4>Next Steps:</h4>
+                        <ul>
+                            <li>Schedule weekly sprint planning meetings (Mondays 9 AM)</li>
+                            <li>Set up development environment and repository access</li>
+                            <li>Conduct stakeholder review meeting on Friday</li>
+                        </ul>
+
+                        <h4>Important Notes:</h4>
+                        <p>Budget approved for additional third-party integrations. Client emphasized the importance of mobile responsiveness and accessibility compliance.</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button id="back-to-prompt" class="text-textMuted hover:text-textPrimary transition-colors" data-event="click:backToStep2">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Instructions
+                    </button>
+                    <button id="proceed-to-share" class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors" data-event="click:proceedToShare">
+                        Continue to Share
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: EditSummarySection -->
+
+        <!-- @COMPONENT: ShareSection -->
+        <div id="share-section" class="mb-8 hidden">
+            <div class="bg-surface rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <i class="fas fa-share text-primary text-lg"></i>
+                    <h2 class="text-lg font-semibold">Step 4: Share Summary via Email</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="email-recipients" class="block text-sm font-medium text-textPrimary mb-2">
+                            Recipient Email Addresses
+                        </label>
+                        <div class="space-y-2">
+                            <div class="flex space-x-2">
+                                <input 
+                                    type="email" 
+                                    id="email-recipients" 
+                                    class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                    placeholder="Enter email address"
+                                    data-implementation="Email validation and recipient management"
+                                >
+                                <button class="bg-gray-100 text-textPrimary px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors" data-event="click:addRecipient">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- @MAP: recipients.map(recipient => ( -->
+                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded border" data-mock="true">
+                                <span class="text-sm" data-bind="recipient.email">john.doe@company.com</span>
+                                <button class="text-red-500 hover:text-red-700 transition-colors" data-event="click:removeRecipient">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded border" data-mock="true">
+                                <span class="text-sm" data-bind="recipient.email">sarah.manager@company.com</span>
+                                <button class="text-red-500 hover:text-red-700 transition-colors" data-event="click:removeRecipient">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="email-subject" class="block text-sm font-medium text-textPrimary mb-2">
+                            Email Subject
+                        </label>
+                        <input 
+                            type="text" 
+                            id="email-subject" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" 
+                            value="Meeting Summary - Project Kickoff"
+                            data-mock="true"
+                            data-implementation="Bind to email subject state"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="email-message" class="block text-sm font-medium text-textPrimary mb-2">
+                            Additional Message (Optional)
+                        </label>
+                        <textarea 
+                            id="email-message" 
+                            rows="3" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none" 
+                            placeholder="Add a personal message to accompany the summary..."
+                            data-implementation="Bind to email message state"
+                        ></textarea>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+                            <div class="text-sm text-yellow-800">
+                                <p class="font-medium mb-1">Preview before sending</p>
+                                <p>The AI-generated summary will be included in the email body. Recipients will receive the formatted summary along with any additional message you add above.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button id="back-to-edit" class="text-textMuted hover:text-textPrimary transition-colors" data-event="click:backToStep3">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Edit
+                    </button>
+                    <div class="flex space-x-3">
+                        <button id="copy-summary" class="bg-gray-100 text-textPrimary px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" data-event="click:copyFinalSummary">
+                            <i class="fas fa-copy mr-2"></i>
+                            Copy Summary
+                        </button>
+                        <button id="send-email" class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors" data-event="click:sendEmail">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Send Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ShareSection -->
+
+        <!-- @COMPONENT: SuccessSection -->
+        <div id="success-section" class="mb-8 hidden">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-green-900 mb-2">Summary Sent Successfully!</h3>
+                    <p class="text-green-700 mb-4">Your meeting summary has been sent to all recipients.</p>
+                    <button class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors" data-event="click:startNew">
+                        Create New Summary
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: SuccessSection -->
+    </main>
+
+    <!-- @COMPONENT: Footer -->
+    <footer class="bg-surface border-t border-gray-200 mt-12">
+        <div class="max-w-4xl mx-auto px-4 py-6">
+            <div class="text-center text-sm text-textMuted">
+                <p>AI Meeting Summarizer - Transform your meetings into actionable insights</p>
+                <p class="mt-1">Built for productivity and collaboration</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Basic UI state management for demonstration
+            let currentStep = 1;
+            let uploadedFile = null;
+            let generatedSummary = '';
+            
+            // File upload handling
+            const fileInput = document.getElementById('file-input');
+            const uploadZone = document.getElementById('upload-zone');
+            const filePreview = document.getElementById('file-preview');
+            const continueBtn = document.getElementById('continue-to-prompt');
+            
+            uploadZone.addEventListener('click', () => fileInput.click());
+            
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('border-primary', 'bg-blue-50');
+            });
+            
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('border-primary', 'bg-blue-50');
+            });
+            
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('border-primary', 'bg-blue-50');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+            
+            function handleFileUpload(file) {
+                // TODO: Implement file validation and processing
+                uploadedFile = file;
+                filePreview.classList.remove('hidden');
+                continueBtn.disabled = false;
+                
+                // Update file display
+                filePreview.querySelector('[data-bind="fileName"]').textContent = file.name;
+                filePreview.querySelector('[data-bind="fileSize"]').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            }
+            
+            // Step navigation
+            function showStep(stepNumber) {
+                // Hide all sections
+                document.querySelectorAll('[id$="-section"]').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                // Update progress indicator
+                for (let i = 1; i <= 4; i++) {
+                    const step = document.getElementById(`step-${i}`);
+                    const circle = step.querySelector('div');
+                    const text = step.querySelector('span');
+                    
+                    if (i <= stepNumber) {
+                        circle.className = 'w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-medium';
+                        text.className = 'font-medium text-primary';
+                    } else {
+                        circle.className = 'w-8 h-8 rounded-full bg-gray-300 text-textMuted flex items-center justify-center font-medium';
+                        text.className = 'text-textMuted';
+                    }
+                }
+                
+                // Show current section
+                switch(stepNumber) {
+                    case 1:
+                        document.getElementById('upload-section').classList.remove('hidden');
+                        break;
+                    case 2:
+                        document.getElementById('prompt-section').classList.remove('hidden');
+                        break;
+                    case 3:
+                        document.getElementById('edit-section').classList.remove('hidden');
+                        break;
+                    case 4:
+                        document.getElementById('share-section').classList.remove('hidden');
+                        break;
+                }
+                currentStep = stepNumber;
+            }
+            
+            // Event listeners for navigation
+            continueBtn.addEventListener('click', () => showStep(2));
+            document.getElementById('back-to-upload').addEventListener('click', () => showStep(1));
+            document.getElementById('back-to-prompt').addEventListener('click', () => showStep(2));
+            document.getElementById('back-to-edit').addEventListener('click', () => showStep(3));
+            document.getElementById('proceed-to-share').addEventListener('click', () => showStep(4));
+            
+            // Generate summary
+            document.getElementById('generate-summary').addEventListener('click', () => {
+                document.getElementById('prompt-section').classList.add('hidden');
+                document.getElementById('loading-section').classList.remove('hidden');
+                
+                // TODO: Implement actual AI API call
+                setTimeout(() => {
+                    document.getElementById('loading-section').classList.add('hidden');
+                    showStep(3);
+                }, 3000);
+            });
+            
+            // Email functionality
+            document.getElementById('send-email').addEventListener('click', () => {
+                // TODO: Implement email sending functionality
+                document.getElementById('share-section').classList.add('hidden');
+                document.getElementById('success-section').classList.remove('hidden');
+            });
+            
+            document.getElementById('start-new').addEventListener('click', () => {
+                // TODO: Reset application state
+                location.reload();
+            });
+            
+            // Copy to clipboard functionality
+            document.getElementById('copy-summary').addEventListener('click', () => {
+                const summaryText = document.getElementById('summary-editor').innerText;
+                navigator.clipboard.writeText(summaryText).then(() => {
+                    // TODO: Show success notification
+                    console.log('Summary copied to clipboard');
+                });
+            });
+            
+            // Template suggestions
+            document.querySelectorAll('[data-event="click:useTemplate"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const templates = {
+                        'Executive Summary Format': 'Create an executive summary with key highlights, decisions made, and strategic implications. Format with clear sections and bullet points.',
+                        'Action Items Only': 'Extract only action items, deadlines, and assigned responsibilities. List each item with person responsible and due date.',
+                        'Project Status Update': 'Summarize project progress, milestones achieved, upcoming deliverables, and any blockers or risks identified.',
+                        'Key Decisions & Outcomes': 'Focus on decisions made during the meeting, outcomes achieved, and next steps. Include any voting results or consensus reached.'
+                    };
+                    
+                    const templateName = button.textContent.trim().replace(/📋|✅|📊|🎯/g, '').trim();
+                    const promptInput = document.getElementById('prompt-input');
+                    promptInput.value = templates[templateName] || '';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
